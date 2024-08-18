@@ -1,78 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A simple HTML template for your project">
-    <title>Sample Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        header {
-            background-color: #333;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        nav {
-            margin: 0;
-            padding: 10px;
-            background-color: #444;
-            text-align: center;
-        }
-
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-        }
-
-        main {
-            padding: 20px;
-            background-color: #fff;
-        }
-
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-    </style>
+    <title>Oasis Water</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="styles.css" rel="stylesheet">
 </head>
-
 <body>
-    <header>
-        <h1>Welcome to My Website</h1>
-    </header>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h1>Sync Data from EPA to ArcGIS</h1>
+                        <button class="btn btn-primary" id="processDataBtn">Sync EPA Data</button>
+<!--                         <button class="btn btn-primary" id="uploadFilesBtn">Upload Processed Files</button>
+                        <button class="btn btn-primary" id="downloadBtn" style="display: none;">Download Processed CSV Files</button>
+                        <button class="btn btn-primary" id="downloadStoredBtn">Download Stored CSV Files</button>
+                        <button class="btn btn-danger" id="stopProcessBtn">Stop Process</button> -->
+                        <div id="processingMessage" style="display: none;">Processing. Please Wait...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <nav>
-        <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Services</a>
-        <a href="#">Contact</a>
-    </nav>
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        const processingMessage = document.getElementById('processingMessage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const uploadFilesBtn = document.getElementById('uploadFilesBtn');
+        const downloadStoredBtn = document.getElementById('downloadStoredBtn');
 
-    <main>
-        <h2>About Us</h2>
-        <p>This is a simple HTML template that you can use to get started with your project. You can customize it as needed to suit your needs.</p>
-        <h2>Our Services</h2>
-        <p>We offer a wide range of services to help you succeed in your business. Contact us to learn more.</p>
-    </main>
+        document.getElementById('processDataBtn').addEventListener('click', function() {
+            processingMessage.style.display = 'block';
+            downloadBtn.style.display = 'none';
+            uploadFilesBtn.style.display = 'none';
 
-    <footer>
-        <p>&copy; 2024 My Website. All Rights Reserved.</p>
-    </footer>
+            fetch('/process-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.downloadLink) {
+                        downloadBtn.style.display = 'block'; // Show the download button
+                        downloadBtn.onclick = () => window.location.href = data.downloadLink; // Set download link
+                    }
+                    if (data.uploadLink) {
+                        uploadFilesBtn.style.display = 'block'; // Show the upload button
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                })
+                .finally(() => {
+                    processingMessage.style.display = 'none';
+                });
+        });
+
+        document.getElementById('uploadFilesBtn').addEventListener('click', function() {
+            fetch('/upload-files')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.urls && data.urls.length > 0) {
+                        alert('Files uploaded successfully. Check console for URLs.');
+                        console.log('Uploaded file URLs:', data.urls);
+                    } else {
+                        alert('No files were uploaded.');
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        });
+
+        document.getElementById('downloadStoredBtn').addEventListener('click', function() {
+            fetch('/download-csvs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.files && data.files.length > 0) {
+                        data.files.forEach(file => {
+                            const link = document.createElement('a');
+                            link.href = `/downloads/${file}`;
+                            link.download = file;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        });
+                    } else {
+                        alert('No files available for download.');
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        });
+
+        document.getElementById('stopProcessBtn').addEventListener('click', function() {
+            fetch('/stop-process', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                })
+                .finally(() => {
+                    processingMessage.style.display = 'none';
+                });
+        });
+    </script>
 </body>
-
 </html>
