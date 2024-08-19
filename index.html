@@ -31,29 +31,34 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- Custom JS -->
     <script>
+       document.addEventListener('DOMContentLoaded', function() {
+        const processDataBtn = document.getElementById('processDataBtn');
         const processingMessage = document.getElementById('processingMessage');
+        const logMessages = document.getElementById('logMessages');
+    
+        if (processDataBtn) {
+            processDataBtn.addEventListener('click', function() {
+                if (processingMessage) {
+                    processingMessage.style.display = 'block';
+                }
+    
+                fetch('/process-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Handle response data
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error.message);
+                    })
+                    .finally(() => {
+                        if (processingMessage) {
+                            processingMessage.style.display = 'none';
+                        }
+                    });
+            });
+        }
+    });
 
-        document.getElementById('processDataBtn').addEventListener('click', function() {
-            processingMessage.style.display = 'block';
-
-            fetch('/process-data')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.downloadLink) {
-                        const downloadBtn = document.createElement('button');
-                        downloadBtn.className = 'btn btn-primary';
-                        downloadBtn.textContent = 'Download Processed CSV Files';
-                        downloadBtn.onclick = () => window.location.href = data.downloadLink;
-                        document.querySelector('.card-body').appendChild(downloadBtn);
-                    }
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
-                })
-                .finally(() => {
-                    processingMessage.style.display = 'none';
-                });
-        });
     </script>
 </body>
 </html>
