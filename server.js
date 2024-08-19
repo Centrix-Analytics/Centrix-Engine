@@ -10,7 +10,7 @@ const { pipeline } = require('stream/promises');
 const { Readable, Writable } = require('stream');
 
 const app = express();
-const port = 10000;
+const port = process.env.PORT || 3000;
 
 const projectId = process.env.PROJECT_ID;
 const keyFilename = process.env.KEYFILENAME;
@@ -71,11 +71,13 @@ function findMatchingZipcode(zipcodeMap, stateServed, cityServed) {
 }
 
 async function processCSV(entry, fileName, selectedFields, addZipcode = false, pwsidZipcodeMap = null, zipcodeMap = null) {
-  const outputFilePath = path.join(downloadDir, fileName.replace('.csv', '_filtered.csv'));
+  const outputFilePath = path.join(downloadDir, fileName); //.replace('.csv', '_filtered.csv')
   const outputStream = fs.createWriteStream(outputFilePath);
 
+  console.log('Processing file : ', fileName)
+
   // Write header to the output stream
-  outputStream.write(selectedFields.join(',') + (addZipcode ? ',ZIPCODE' : '') + '\n');
+  outputStream.write(selectedFields.join(',') + ',ZIPCODE' + '\n');
 
   const transformStream = new Writable({
     objectMode: true,
@@ -97,7 +99,7 @@ async function processCSV(entry, fileName, selectedFields, addZipcode = false, p
           return callback(); // Skip row if STATE_SERVED or CITY_SERVED is blank
         }
       }
-      if (fileName === 'SDWA_LCR_SAMPLES.csv' && pwsidZipcodeMap) {
+      if ( (fileName === 'SDWA_LCR_SAMPLES.csv' || fileName === 'SDWA_VIOLATIONS_ENFORCEMENT.csv' ) && pwsidZipcodeMap) {
         const pwsid = row['PWSID'];
         const zipcode = pwsidZipcodeMap.get(pwsid) || '';
         if (zipcode) {
@@ -160,7 +162,8 @@ async function downloadAndProcessCSVs(url) {
 
         if (file) {
           try {
-            filePaths[file.name.replace('.csv', '_filtered.csv')] = await processCSV(entry, file.name, file.fields, file.addZipcode, pwsidZipcodeMap, zipcodeMap);
+            //file.name.replace('.csv', '_filtered.csv')
+            filePaths[file.name] = await processCSV(entry, file.name, file.fields, file.addZipcode, pwsidZipcodeMap, zipcodeMap);
             processedCount++;
             if (processedCount === processFiles.length) {
               parseStream.emit('end'); // Manually emit 'end' event
@@ -196,21 +199,41 @@ app.get('/process-data', async (req, res) => {
   processRunning = true;
   processAbortController = new AbortController();
 
-  // const startTime = new Date();
+  const startTime = new Date();
 
   try {
+
     await clearDownloadsDirectory();
     const filePaths = await downloadAndProcessCSVs(fileUrl);
 
-    // Upload files to Google Cloud Storage
-    // const bucketName = process.env.BUCKET_NAME;
-    // const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
-    //   const mediaLink = await uploadFile(bucketName, filePath, key);
-    //   return { [key]: mediaLink };
-    // });
+    //Don't need to store 'SDWA_GEOGRAPHIC_AREAS.csv', so delete it from 
+    if (filePaths['SDWA_GEOGRAPHIC_AREAS.csv']) {
+      delete filePaths['SDWA_GEOGRAPHIC_AREAS.csv'];
+    }
 
-    // const uploadedFiles = await Promise.all(uploadPromises);
-    res.json({ files: filePaths }); //uploadedFiles
+    // delete file, which don't need
+    const files = await fs.promises.readdir(downloadDir);
+    const fileToDelete = 'SDWA_GEOGRAPHIC_AREAS.csv';
+    if (files.includes(fileToDelete)) {
+      await fs.promises.rm(path.join(downloadDir, fileToDelete), { recursive: true, force: true });
+    }
+    
+    console.log(filePaths)
+
+    //Upload files to Google Cloud Storage
+    const bucketName = process.env.BUCKET_NAME;
+    const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
+      const mediaLink = await uploadFile(bucketName, filePath, key);
+      return { [key]: mediaLink };
+    });
+
+    const uploadedFiles = await Promise.all(uploadPromises);
+
+    const endTime = new Date();
+    const timeTaken = endTime - startTime;
+    console.log(`CSV processing completed in ${timeTaken} ms`);
+
+    res.json({ files: uploadedFiles }); //filePaths
   } catch (error) {
     console.error('Error processing files:', error);
     res.status(500).send('Internal Server Error');
@@ -219,7 +242,6 @@ app.get('/process-data', async (req, res) => {
     processAbortController = null;
   }
 });
-
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
