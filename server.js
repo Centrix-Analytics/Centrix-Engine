@@ -207,33 +207,33 @@ app.get('/process-data', async (req, res) => {
     const filePaths = await downloadAndProcessCSVs(fileUrl);
 
     //Don't need to store 'SDWA_GEOGRAPHIC_AREAS.csv', so delete it from 
-    if (filePaths['SDWA_GEOGRAPHIC_AREAS.csv']) {
-      delete filePaths['SDWA_GEOGRAPHIC_AREAS.csv'];
-    }
+    // if (filePaths['SDWA_GEOGRAPHIC_AREAS.csv']) {
+    //   delete filePaths['SDWA_GEOGRAPHIC_AREAS.csv'];
+    // }
 
     // delete file, which don't need
-    const files = await fs.promises.readdir(downloadDir);
-    const fileToDelete = 'SDWA_GEOGRAPHIC_AREAS.csv';
-    if (files.includes(fileToDelete)) {
-      await fs.promises.rm(path.join(downloadDir, fileToDelete), { recursive: true, force: true });
-    }
+    // const files = await fs.promises.readdir(downloadDir);
+    // const fileToDelete = 'SDWA_GEOGRAPHIC_AREAS.csv';
+    // if (files.includes(fileToDelete)) {
+    //   await fs.promises.rm(path.join(downloadDir, fileToDelete), { recursive: true, force: true });
+    // }
     
     console.log(filePaths)
 
     //Upload files to Google Cloud Storage
-    const bucketName = process.env.BUCKET_NAME;
-    const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
-      const mediaLink = await uploadFile(bucketName, filePath, key);
-      return { [key]: mediaLink };
-    });
+    // const bucketName = process.env.BUCKET_NAME;
+    // const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
+    //   const mediaLink = await uploadFile(bucketName, filePath, key);
+    //   return { [key]: mediaLink };
+    // });
 
-    const uploadedFiles = await Promise.all(uploadPromises);
+    // const uploadedFiles = await Promise.all(uploadPromises);
 
     const endTime = new Date();
     const timeTaken = endTime - startTime;
     console.log(`CSV processing completed in ${timeTaken} ms`);
 
-    res.json({ files: uploadedFiles }); //filePaths
+    res.json({ files: filePaths }); //uploadedFiles
   } catch (error) {
     console.error('Error processing files:', error);
     res.status(500).send('Internal Server Error');
