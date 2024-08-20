@@ -58,9 +58,8 @@
                     }
                 })
                 .catch(error => {
-                    processingMessage.style.display = 'none';
-                    doneMessage.style.display = 'block';
-                    doneMessage.textContent = `Error: ${error.message}`;
+                    processingMessage.style.display = 'block';
+                    processingMessage.textContent = `Error: ${error.message}`;
                 })
                 .finally(() => {
                     processingMessage.style.display = 'none';
