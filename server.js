@@ -10,7 +10,7 @@ const { pipeline } = require('stream/promises');
 const { Readable, Writable } = require('stream');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 10000;
 
 const projectId = process.env.PROJECT_ID;
 const keyFilename = process.env.KEYFILENAME;
