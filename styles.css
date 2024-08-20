@@ -31,4 +31,12 @@ h1 {
     text-align: center;
     margin-top: 20px;
 }
+
+#doneMessage {
+    display: none;
+    color: green;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
     
