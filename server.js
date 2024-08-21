@@ -5,12 +5,11 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
-const { Storage } = require('@google-cloud/storage');
 const { pipeline } = require('stream/promises');
 const { Readable, Writable } = require('stream');
 
 const app = express();
-const port = 3000;
+const port = 80;
 
 const fileUrl = 'https://echo.epa.gov/files/echodownloads/SDWA_latest_downloads.zip';
 const downloadDir = path.join(__dirname, 'downloads');
