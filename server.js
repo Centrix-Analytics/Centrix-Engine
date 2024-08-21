@@ -10,11 +10,7 @@ const { pipeline } = require('stream/promises');
 const { Readable, Writable } = require('stream');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-const projectId = process.env.PROJECT_ID;
-const keyFilename = process.env.KEYFILENAME;
-const storage = new Storage({ projectId, keyFilename });
+const port = 3000;
 
 const fileUrl = 'https://echo.epa.gov/files/echodownloads/SDWA_latest_downloads.zip';
 const downloadDir = path.join(__dirname, 'downloads');
@@ -47,13 +43,6 @@ async function clearDownloadsDirectory() {
     console.error('Error clearing the downloads directory:', error);
   }
 }
-
-async function uploadFile(bucketName, filePath, destination) {
-  await storage.bucket(bucketName).upload(filePath, { destination });
-  const [metadata] = await storage.bucket(bucketName).file(destination).getMetadata();
-  return metadata.mediaLink;
-}
-
 // Function to load zipcode data into memory and create a map
 async function loadZipcodeData() {
   const zipcodeMap = new Map();
@@ -232,19 +221,19 @@ app.get('/process-data', async (req, res) => {
     console.log(filePaths)
 
     //Upload files to Google Cloud Storage
-    const bucketName = process.env.BUCKET_NAME;
-    const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
-      const mediaLink = await uploadFile(bucketName, filePath, key);
-      return { [key]: mediaLink };
-    });
+    // const bucketName = process.env.BUCKET_NAME;
+    // const uploadPromises = Object.entries(filePaths).map(async ([key, filePath]) => {
+    //   const mediaLink = await uploadFile(bucketName, filePath, key);
+    //   return { [key]: mediaLink };
+    // });
 
-    const uploadedFiles = await Promise.all(uploadPromises);
+    // const uploadedFiles = await Promise.all(uploadPromises);
 
     const endTime = new Date();
     const timeTaken = endTime - startTime;
     console.log(`CSV processing completed in ${timeTaken} ms`);
 
-    res.json({ uploadFiles: uploadedFiles, filePaths: filePaths}); //uploadedFiles
+    res.json({ filePaths: filePaths}); //uploadedFiles
   } catch (error) {
     console.error('Error processing files:', error);
     res.status(500).send('Internal Server Error');
