@@ -36,39 +36,43 @@
         const doneMessage = document.getElementById('doneMessage');
 
         document.getElementById('processDataBtn').addEventListener('click', function() {
-            processingMessage.style.display = 'block';
-            processingMessage.textContent = 'Processing. Please Wait...'; // Ensure this text appears initially
-
-            fetch('/process-data')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.downloadLink) {
-                        doneMessage.innerHTML = `
-                            <p>Data processed successfully!</p>
-                            <button class="btn btn-primary">Download Processed CSV Files</button>
+        processingMessage.style.display = 'block';
+        processingMessage.textContent = 'Processing. Please Wait...'; // Ensure this text appears initially
+    
+        fetch('/process-data')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.downloadLinks && data.downloadLinks.length > 0) {
+                    let linksHTML = '<p>Data processed successfully! Here are your files:</p>';
+                    data.downloadLinks.forEach((link, index) => {
+                        linksHTML += `
+                            <div class="mb-3">
+                                <a href="${link.url}" target="_blank">Download File ${index + 1}</a>
+                                <br>
+                                <small>URL: ${link.url}</small>
+                            </div>
                         `;
-                        doneMessage.querySelector('button').onclick = () => window.location.href = data.downloadLink;
-                    } else {
-                        doneMessage.textContent = 'Processing completed, but no download link was provided.';
-                    }
-                })
-                .catch(error => {
-                    processingMessage.style.display = 'block';
-                    processingMessage.textContent = `Error: ${error.message}`;
-                })
-                .finally(() => {
-                    processingMessage.style.display = 'none';
-                    doneMessage.style.display = 'block';
-                    if (!doneMessage.textContent.includes('Error')) {
-                        doneMessage.textContent = 'All files downloaded and stored in Google Storage successfully.';
-                    }
-                });
-        });
+                    });
+    
+                    doneMessage.innerHTML = linksHTML;
+                } else {
+                    doneMessage.textContent = 'Processing completed, but no download links were provided.';
+                }
+            })
+            .catch(error => {
+                processingMessage.style.display = 'block';
+                processingMessage.textContent = `Error: ${error.message}`;
+            })
+            .finally(() => {
+                processingMessage.style.display = 'none';
+                doneMessage.style.display = 'block';
+            });
+    });
     </script>
 </body>
 </html>
