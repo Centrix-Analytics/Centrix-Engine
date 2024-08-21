@@ -7,7 +7,6 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
@@ -26,53 +25,52 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Custom JS -->
+    
     <script>
         const processingMessage = document.getElementById('processingMessage');
         const doneMessage = document.getElementById('doneMessage');
 
         document.getElementById('processDataBtn').addEventListener('click', function() {
-        processingMessage.style.display = 'block';
-        processingMessage.textContent = 'Processing. Please Wait...'; // Ensure this text appears initially
-    
-        fetch('/process-data')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.downloadLinks && data.downloadLinks.length > 0) {
-                    let linksHTML = '<p>Data processed successfully! Here are your files:</p>';
-                    data.downloadLinks.forEach((link, index) => {
-                        linksHTML += `
-                            <div class="mb-3">
-                                <a href="${link.url}" target="_blank">Download File ${index + 1}</a>
-                                <br>
-                                <small>URL: ${link.url}</small>
-                            </div>
-                        `;
-                    });
-    
-                    doneMessage.innerHTML = linksHTML;
-                } else {
-                    doneMessage.textContent = 'Processing completed, but no download links were provided.';
-                }
-            })
-            .catch(error => {
-                processingMessage.style.display = 'block';
-                processingMessage.textContent = `Error: ${error.message}`;
-            })
-            .finally(() => {
-                processingMessage.style.display = 'none';
-                doneMessage.style.display = 'block';
-            });
-    });
+            processingMessage.style.display = 'block';
+            processingMessage.textContent = 'Processing. Please Wait...'; // Ensure this text appears initially
+
+            fetch('/process-data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.downloadLinks && data.downloadLinks.length > 0) {
+                        let linksHTML = '<p>Data processed successfully! Here are your files:</p>';
+                        data.downloadLinks.forEach((link, index) => {
+                            linksHTML += `
+                                <div class="mb-3">
+                                    <a href="${link.url}" target="_blank">Download File ${index + 1}</a>
+                                    <br>
+                                    <small>URL: ${link.url}</small>
+                                </div>
+                            `;
+                        });
+
+                        doneMessage.innerHTML = linksHTML;
+                    } else {
+                        doneMessage.textContent = 'Processing completed, but no download links were provided.';
+                    }
+                })
+                .catch(error => {
+                    processingMessage.style.display = 'block';
+                    processingMessage.textContent = `Error: ${error.message}`;
+                })
+                .finally(() => {
+                    processingMessage.style.display = 'none';
+                    doneMessage.style.display = 'block';
+                });
+        });
     </script>
 </body>
 </html>
