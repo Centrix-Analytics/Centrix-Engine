@@ -9,7 +9,7 @@ const { pipeline } = require('stream/promises');
 const { Readable, Writable } = require('stream');
 
 const app = express();
-const port = 80;
+const port = 3000;
 
 const fileUrl = 'https://echo.epa.gov/files/echodownloads/SDWA_latest_downloads.zip';
 const downloadDir = path.join(__dirname, 'downloads');
