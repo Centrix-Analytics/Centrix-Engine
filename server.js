@@ -232,7 +232,7 @@ app.get('/process-data', async (req, res) => {
     const timeTaken = endTime - startTime;
     console.log(`CSV processing completed in ${timeTaken} ms`);
 
-    res.json({ filePaths: filePaths}); //uploadedFiles
+    res.json({ downloadLinks : filePaths}); //uploadedFiles
   } catch (error) {
     console.error('Error processing files:', error);
     res.status(500).send('Internal Server Error');
