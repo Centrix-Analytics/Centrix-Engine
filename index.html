@@ -46,15 +46,20 @@
                 })
                 .then(data => {
                     if (data.downloadLinks && Object.keys(data.downloadLinks).length > 0) {
-                        let linksHTML = '<p>Data processed successfully! Here are your file links to download or access:</p>';
+                        let linksHTML = '<p>Data processed successfully! Here are your file links to download or access:</p>';                    
+                        // Base path to remove
+                        const basePathToRemove = 'root/Centrix-Engine-/';
                     
                         // Iterate over the keys and values of the downloadLinks object
                         Object.entries(data.downloadLinks).forEach(([fileName, filePath], index) => {
+                            // Remove the base path from the URL
+                            const cleanedUrl = filePath.replace(basePathToRemove, '');
+                    
                             linksHTML += `
                                 <div class="mb-3">
-                                    <a href="${filePath}" target="_blank">Download ${fileName}</a>
+                                    <a href="${cleanedUrl}" target="_blank">Download ${fileName}</a>
                                     <br>
-                                    <small>URL: ${filePath}</small>
+                                    <small>URL: ${cleanedUrl}</small>
                                 </div>
                             `;
                         });
@@ -63,6 +68,7 @@
                     } else {
                         doneMessage.textContent = 'Processing completed, but no download links were provided.';
                     }
+
                 })
                 .catch(error => {
                     processingMessage.style.display = 'block';
