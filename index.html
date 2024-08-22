@@ -45,18 +45,20 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data.downloadLinks && data.downloadLinks.length > 0) {
+                    if (data.downloadLinks && Object.keys(data.downloadLinks).length > 0) {
                         let linksHTML = '<p>Data processed successfully! Here are your file links to download or access:</p>';
-                        data.downloadLinks.forEach((link, index) => {
+                    
+                        // Iterate over the keys and values of the downloadLinks object
+                        Object.entries(data.downloadLinks).forEach(([fileName, filePath], index) => {
                             linksHTML += `
                                 <div class="mb-3">
-                                    <a href="${link.url}" target="_blank">Download File ${index + 1}</a>
+                                    <a href="${filePath}" target="_blank">Download ${fileName}</a>
                                     <br>
-                                    <small>URL: ${link.url}</small>
+                                    <small>URL: ${filePath}</small>
                                 </div>
                             `;
                         });
-
+                    
                         doneMessage.innerHTML = linksHTML;
                     } else {
                         doneMessage.textContent = 'Processing completed, but no download links were provided.';
