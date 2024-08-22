@@ -46,7 +46,7 @@
                 })
                 .then(data => {
                     if (data.downloadLinks && data.downloadLinks.length > 0) {
-                        let linksHTML = '<p>Data processed successfully! Here are your files:</p>';
+                        let linksHTML = '<p>Data processed successfully! Here are your file links to download or access:</p>';
                         data.downloadLinks.forEach((link, index) => {
                             linksHTML += `
                                 <div class="mb-3">
